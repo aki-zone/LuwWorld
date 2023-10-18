@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 from PyQt5.QtCore import QPoint
 
-from World.Utils.MathLab import Matirx
+
 
 
 class Trans2D:
@@ -20,9 +20,9 @@ class Trans2D:
         Returns:
             trans_matrix: The translation matrix.
         """
-        matrix = Matirx.Matirx2D.point_to_matrix(point)
-        trans_matrix = Matirx.Matirx2D.translate(matrix, tx, ty)
-        _temp = Matirx.Matirx2D.extract_point(matrix)
+        matrix = Matirx2D.point_to_matrix(point)
+        trans_matrix = Matirx2D.translate(matrix, tx, ty)
+        _temp = Matirx2D.extract_point(matrix)
         point.setX(_temp.x())
         point.setY(_temp.y())
         return trans_matrix
@@ -40,15 +40,15 @@ class Trans2D:
         Returns:
             trans_matrix: The Scaling  matrix.
         """
-        matrix = Matirx.Matirx2D.point_to_matrix(point)
-        trans_matrix = Matirx.Matirx2D.scale(matrix, sx, sy)
-        _temp = Matirx.Matirx2D.extract_point(matrix)
+        matrix = Matirx2D.point_to_matrix(point)
+        trans_matrix = Matirx2D.scale(matrix, sx, sy)
+        _temp = Matirx2D.extract_point(matrix)
         point.setX(_temp.x())
         point.setY(_temp.y())
         return trans_matrix
 
     @staticmethod
-    def rotate_point(point: QPoint, angle:float) -> np.ndarray:
+    def rotate_point(point: QPoint, angle: float) -> np.ndarray:
         """
         rotate a QPoint object by (tx, ty).
 
@@ -59,9 +59,9 @@ class Trans2D:
         Returns:
             trans_matrix: The rotating  matrix.
         """
-        matrix = Matirx.Matirx2D.point_to_matrix(point)
-        trans_matrix = Matirx.Matirx2D.rotate(matrix, angle)
-        _temp = Matirx.Matirx2D.extract_point(matrix)
+        matrix = Matirx2D.point_to_matrix(point)
+        trans_matrix = Matirx2D.rotate(matrix, angle)
+        _temp = Matirx2D.extract_point(matrix)
         point.setX(_temp.x())
         point.setY(_temp.y())
         return trans_matrix
@@ -79,9 +79,9 @@ class Trans2D:
         Returns:
             trans_matrix: The rotating  matrix.
         """
-        matrix = Matirx.Matirx2D.point_to_matrix(point)
-        trans_matrix = Matirx.Matirx2D.shear(matrix, shx, shy)
-        _temp = Matirx.Matirx2D.extract_point(matrix)
+        matrix = Matirx2D.point_to_matrix(point)
+        trans_matrix = Matirx2D.shear(matrix, shx, shy)
+        _temp = Matirx2D.extract_point(matrix)
         point.setX(_temp.x())
         point.setY(_temp.y())
         return trans_matrix
@@ -98,7 +98,7 @@ class Trans2D:
         Returns:
             trans_matrix: The rotating  matrix.
         """
-        return Matirx.Matirx2D.compose(input_matrix, transformations)
+        return Matirx2D.compose(input_matrix, transformations)
 
     @staticmethod
     def matrix_mul(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
@@ -111,4 +111,4 @@ class Trans2D:
         Returns:
             ndarray: The resulting 3x3 matrix.
         """
-        return Matirx.Matirx2D.matrix_multiply(matrix1,matrix2)
+        return Matirx2D.matrix_multiply(matrix1, matrix2)

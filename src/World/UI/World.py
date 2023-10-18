@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPen
 
-from World.Utils.MathLab import Matirx
+
 from World.Utils.NeoD.Transform.Trans import Trans2D
 
 
@@ -15,8 +15,8 @@ class World:
         painter.setPen(pen)
 
         trans = Trans2D()
-        tx = 300
-        ty = 300
+        tx = 33
+        ty = 330
 
         trans.translate_point(a, tx, ty)
         trans.translate_point(b, tx, ty)

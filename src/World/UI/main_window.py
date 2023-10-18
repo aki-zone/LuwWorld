@@ -6,13 +6,12 @@ from World.UI.World import World
 from World.Utils.NeoD.LPainter.Line import LinePainter
 
 """
-主要窗口,是整个项目渲染时的外部框架
+main window which is external framework for rendering the entire project
 """
 
 
 class MainWindow(QMainWindow):
 
-    # 构造函数
     def __init__(self):
         super().__init__()
         # 设置窗口属性
@@ -23,4 +22,3 @@ class MainWindow(QMainWindow):
         painter = QPainter(self)
         world = World()
         world.draw_lines(painter)
-
