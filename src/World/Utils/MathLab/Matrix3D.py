@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+from PyQt5.QtCore import QPoint
 
 
 def translate(input_matrix: np.ndarray, tx: float, ty: float, tz: float) -> np.ndarray:
@@ -57,3 +58,42 @@ def matrix_multiply(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
 
     result_matrix = np.dot(matrix1, matrix2)
     return result_matrix
+
+
+def point_to_matrix(point: QPoint) -> np.ndarray:
+    """
+    Convert a QPoint object to a 3x1 matrix.
+
+    Args:
+        point (QPoint): The input QPoint object.
+
+    Returns:
+        ndarray: The 3x1 matrix representing the QPoint.
+    """
+    if isinstance(point, QPoint):
+        return np.array(
+            [
+                [point.x()],
+                [point.y()],
+                [point.Z()],
+                [1]
+            ]
+        )
+    else:
+        raise ValueError("Matrix2D: Input must be a QPoint object")
+
+
+def extract_point(result_matrix: np.ndarray) -> QPoint:
+    """
+    Extract a QPoint object from a 3x1 matrix.
+
+    Args:
+        result_matrix (ndarray): The input 3x1 matrix.
+
+    Returns:
+        QPoint: The extracted QPoint.
+    """
+    if result_matrix.shape == (4, 1):
+        return QPoint(int(result_matrix[0, 0]), int(result_matrix[1, 0]), int(result_matrix[2, 0]))
+    else:
+        raise ValueError("Input matrix must be a 3x1 matrix")
