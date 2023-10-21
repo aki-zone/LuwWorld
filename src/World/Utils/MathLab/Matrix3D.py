@@ -1,7 +1,8 @@
 from typing import List
 
 import numpy as np
-from PyQt5.QtCore import QPoint
+
+from World.Entity.Render.LuwEntity.LPoint import LPoint
 
 
 def translate(input_matrix: np.ndarray, tx: float, ty: float, tz: float) -> np.ndarray:
@@ -25,6 +26,35 @@ def translate(input_matrix: np.ndarray, tx: float, ty: float, tz: float) -> np.n
     ])
     input_matrix[:] = np.dot(translation_matrix, input_matrix)
     return translation_matrix
+
+
+def lookAt(eye: np.ndarray, center: np.ndarray, up: np.ndarray) -> np.ndarray:
+    """
+    Calculate the view matrix.
+
+    Parameters:
+    eye (numpy.ndarray): Camera position (3D vector).
+    center (numpy.ndarray): Position of the point being observed, the target where the camera is looking (3D vector).
+    up (numpy.ndarray): Camera's up vector (3D vector).
+
+    Returns:
+    numpy.ndarray: The view matrix used to transform objects from world coordinates to camera coordinates.
+    """
+
+    forward = (center - eye)  # The view vector
+    forward = forward.astype(float) / np.linalg.norm(forward).astype(float)  # Vector normalization
+    right = np.cross(up, forward)  # Cross product of up and forward vectors, obtaining a right direction vector
+    right /= np.linalg.norm(right).astype(float)  # Vector normalization
+    new_up = np.cross(forward, right)  # Ensure orthogonality while normalizing the up vector
+
+    view_matrix = np.array([
+        [right[0], new_up[0], -forward[0], 0],
+        [right[1], new_up[1], -forward[1], 0],
+        [right[2], new_up[2], -forward[2], 0],
+        [-np.dot(right, eye), -np.dot(new_up, eye), np.dot(forward, eye), 1]
+    ])
+
+    return view_matrix
 
 
 def compose(input_matrix: np.ndarray, transformations: List[np.ndarray]) -> np.ndarray:
@@ -60,40 +90,40 @@ def matrix_multiply(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
     return result_matrix
 
 
-def point_to_matrix(point: QPoint) -> np.ndarray:
+def point_to_matrix(point: LPoint) -> np.ndarray:
     """
-    Convert a QPoint object to a 3x1 matrix.
+    Convert a LPoint object to a 3x1 matrix.
 
     Args:
-        point (QPoint): The input QPoint object.
+        point (LPoint): The input LPoint object.
 
     Returns:
-        ndarray: The 3x1 matrix representing the QPoint.
+        ndarray: The 3x1 matrix representing the LPoint.
     """
-    if isinstance(point, QPoint):
+    if isinstance(point, LPoint):
         return np.array(
             [
-                [point.x()],
-                [point.y()],
-                [point.Z()],
-                [1]
+                point.getX(),
+                point.getY(),
+                point.getZ(),
+                1
             ]
         )
     else:
-        raise ValueError("Matrix2D: Input must be a QPoint object")
+        raise ValueError("Matrix2D: Input must be a LPoint object")
 
 
-def extract_point(result_matrix: np.ndarray) -> QPoint:
+def extract_point(result_matrix: np.ndarray) -> LPoint:
     """
-    Extract a QPoint object from a 3x1 matrix.
+    Extract a LPoint object from a 3x1 matrix.
 
     Args:
         result_matrix (ndarray): The input 3x1 matrix.
 
     Returns:
-        QPoint: The extracted QPoint.
+        LPoint: The extracted LPoint.
     """
     if result_matrix.shape == (4, 1):
-        return QPoint(int(result_matrix[0, 0]), int(result_matrix[1, 0]), int(result_matrix[2, 0]))
+        return LPoint(int(result_matrix[0, 0]), int(result_matrix[1, 0]), int(result_matrix[2, 0]))
     else:
         raise ValueError("Input matrix must be a 3x1 matrix")
