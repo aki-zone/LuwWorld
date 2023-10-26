@@ -26,7 +26,7 @@ class Canvas:
 
         for dot in dots:
             # 设置透明通道为完全不透明
-            self.img.putpixel(dot, color + (255,))
+            self.img.putpixel((int(dot[0]+0.5), int(dot[1]+0.5)), color + (255,))
 
     def __enter__(self):
         return self

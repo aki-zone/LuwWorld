@@ -10,7 +10,7 @@ include_dirs=[np.get_include()]: 访问numpy头文件
 extensions = [
     Extension(
         "speedup",
-        ["LRender/speedup.pyx"],
+        ["LRender/CyModule/speedup.pyx"],
         # define_macros=[("CYTHON_TRACE", "1")],
         include_dirs=[np.get_include()],
         # libraries=["m"],
@@ -27,7 +27,8 @@ setup(
         extensions,
         annotate=True,
         compiler_directives={"linetrace": True, "binding": True},
-    )
+    ),
+    script_args=["build_ext", "-b", "LRender/CyModule", "-t", "Compiled_Temps"],
 )
 
 """

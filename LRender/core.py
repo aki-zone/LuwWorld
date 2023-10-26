@@ -1,14 +1,10 @@
 from copy import deepcopy
 from functools import partial
-
+from LRender.canvas import Canvas
+from LRender.CyModule import speedup
 import numpy as np
-import speedup
 import typing as t
 
-from LRender.canvas import Canvas
-
-
-# import Canvas
 
 
 class Vec2d:
@@ -18,7 +14,7 @@ class Vec2d:
     def __init__(self, *args):
         # Vec3d 情况
         if len(args) == 1 and isinstance(args[0], Vec3d):
-            self.arr = Vec3d.arr
+            self.arr = Vec3d.narr
         else:
             # 阻塞检测,若出现大于两个元素的输入,则报错
             assert len(args) == 2
@@ -120,6 +116,7 @@ class Mat4d:
         return repr(f"Mat4d: {self.value}")
 
     def __mul__(self, other):
+        # return self.__class__(value=speedup)
         return self.__class__(value=self.value * other.value)
 
 
@@ -178,13 +175,13 @@ def look_at(eye: Vec3d, target: Vec3d, up: Vec3d = Vec3d(0, 1, 0)) -> Mat4d:
 
 # 贝斯曼直线绘制法
 def draw_line(
-        v1: Vec2d, v2: Vec2d, canv: Canvas, color: t.Union[tuple, str] = "white"
+        v1: Vec2d, v2: Vec2d, canvas: Canvas, color: t.Union[tuple, str] = "white"
 ):
     # 调用深拷贝,即引用参变
     v1, v2 = deepcopy(v1), deepcopy(v2)
 
     if v1 == v2:
-        canv.draw((v1.x, v1.y), color=color)
+        canvas.draw((v1.x, v1.y), color=color)
         return
 
     # steep信息参数,确立主方向
@@ -228,10 +225,10 @@ def draw_line(
             y += incr
             error -= 1
 
-    canv.draw(dots, color=color)
+    canvas.draw(dots, color=color)
 
 
-def draw_triangle(v1: Vec2d, v2: Vec2d, v3: Vec2d, canvas, color, wireframe=False):
+def draw_triangle(v1, v2, v3, canvas, color, wireframe=False):
     """
     Draw a triangle with 3 ordered vertices
 
@@ -239,63 +236,50 @@ def draw_triangle(v1: Vec2d, v2: Vec2d, v3: Vec2d, canvas, color, wireframe=Fals
     """
     _draw_line = partial(draw_line, canvas=canvas, color=color)
 
-    # 需要线框, 则绘制三角形边
     if wireframe:
         _draw_line(v1, v2)
         _draw_line(v2, v3)
         _draw_line(v1, v3)
         return
 
-    # 点阵排序,按照每个点的y值排序
     def sort_vertices_asc_by_y(vertices):
         return sorted(vertices, key=lambda v: v.y)
 
-    # 等顶三角形, 即vec2 = vec3
-    def fill_bottom_flat_triangle(vec1, vec2, vec3):
+    def fill_bottom_flat_triangle(v1, v2, v3):
+        invslope1 = (v2.x - v1.x) / (v2.y - v1.y)
+        invslope2 = (v3.x - v1.x) / (v3.y - v1.y)
 
-        # 左右腰线的斜率倒数
-        invslope1 = (vec2.x - vec1.x) / (vec2.y - vec1.y)
-        invslope2 = (vec3.x - vec1.x) / (vec3.y - vec1.y)
+        x1 = x2 = v1.x
+        y = v1.y
 
-        x1 = x2 = vec1.x
-        y_start = vec1.y
-
-        # 扫描线填充
-        while y_start <= vec2.y:
-            _draw_line(Vec2d(x1, y_start), Vec2d(x2, y_start))
+        while y <= v2.y:
+            _draw_line(Vec2d(x1, y), Vec2d(x2, y))
             x1 += invslope1
             x2 += invslope2
-            y_start += 1
+            y += 1
 
-    # 等底三角形, 即vec2 = vec1
-    def fill_top_flat_triangle(vec1, vec2, vec3):
-        invslope1 = (vec3.x - vec1.x) / (vec3.y - vec1.y)
-        invslope2 = (vec3.x - vec2.x) / (vec3.y - vec2.y)
+    def fill_top_flat_triangle(v1, v2, v3):
+        invslope1 = (v3.x - v1.x) / (v3.y - v1.y)
+        invslope2 = (v3.x - v2.x) / (v3.y - v2.y)
 
-        x1 = x2 = vec3.x
-        y_start = vec3.y
+        x1 = x2 = v3.x
+        y = v3.y
 
-        while y_start > vec2.y:
-            _draw_line(Vec2d(x1, y_start), Vec2d(x2, y_start))
+        while y > v2.y:
+            _draw_line(Vec2d(x1, y), Vec2d(x2, y))
             x1 -= invslope1
             x2 -= invslope2
-            y_start -= 1
+            y -= 1
 
-    # 排序,按照y坐标 vec1 < vec2 < vec3
     v1, v2, v3 = sort_vertices_asc_by_y((v1, v2, v3))
 
     # 填充
-    # 全平行, 无需填充
     if v1.y == v2.y == v3.y:
         pass
-
-    # 等底/等顶三角形, 直接调用函数填充
     elif v2.y == v3.y:
         fill_bottom_flat_triangle(v1, v2, v3)
     elif v1.y == v2.y:
         fill_top_flat_triangle(v1, v2, v3)
-
-    # 以vec2水平轴为中界线, 切分为上下两个三角形
     else:
         v4 = Vec2d(int(v1.x + (v2.y - v1.y) / (v3.y - v1.y) * (v3.x - v1.x)), v2.y)
         fill_bottom_flat_triangle(v1, v2, v4)
@@ -356,7 +340,7 @@ def get_light_intensity(face) -> float:
     return dot_product(up, normalize(light))
 
 
-def draw(screen_vertices, world_vertices, model, canv, wireframe=True):
+def draw(screen_vertices, world_vertices, model, canvas, wireframe=True):
     # 遍历模型里的顶点索引清单
     for triangle_indices in model.indices:
         vertex_group = [screen_vertices[idx - 1] for idx in triangle_indices]
@@ -364,25 +348,30 @@ def draw(screen_vertices, world_vertices, model, canv, wireframe=True):
 
         # 绘制线框
         if wireframe:
-            draw_triangle(*vertex_group, canvas=canv, color="black", wireframe=True)
+            draw_triangle(*vertex_group, canvas=canvas, color="black", wireframe=True)
         else:
             intensity = get_light_intensity(face)
             if intensity > 0:
                 draw_triangle(
-                    *vertex_group, canvas=canv, color=(int(intensity * 255),) * 3
+                    *vertex_group, canvas=canvas, color=(int(intensity * 255),) * 3
                 )
 
 
 def draw_with_z_buffer(screen_vertices, world_vertices, model, canvas):
-    """ z-buffer algorithm
     """
-    intensities = []
-    triangles = []
-    for i, triangle_indices in enumerate(model.indices):
+    z-buffer 算法
+    """
+
+    intensities = []  # 光照强度数组
+    triangles = []  # 三角形数组
+
+    for i, triangle_indices in enumerate(model.indices):  # enumerate,为一个函数,指可以遍历迭代参数内的所有信息
         screen_triangle = [screen_vertices[idx - 1] for idx in triangle_indices]
         uv_triangle = [model.uv_vertices[idx - 1] for idx in model.uv_indices[i]]
         world_triangle = [Vec3d(world_vertices[idx - 1]) for idx in triangle_indices]
-        intensities.append(abs(get_light_intensity(world_triangle)))
+
+        intensities.append(abs(get_light_intensity(world_triangle)))  # 获取模型每个三角片的光强
+
         # take off the class to let Cython work
         triangles.append(
             [np.append(screen_triangle[i].arr, uv_triangle[i]) for i in range(3)]
@@ -391,29 +380,38 @@ def draw_with_z_buffer(screen_vertices, world_vertices, model, canvas):
     faces = speedup.generate_faces(
         np.array(triangles, dtype=np.double), model.texture_width, model.texture_height
     )
+
     for face_dots in faces:
         for dot in face_dots:
             intensity = intensities[dot[0]]
             u, v = dot[3], dot[4]
             color = model.texture_array[u, v]
             canvas.draw((dot[1], dot[2]), tuple(int(c * intensity) for c in color[:3]))
-            # canv.draw((dot[1], dot[2]), (int(255 * intensity),) * 3)
+
+
+
 
 
 def render(model, height, width, filename, wireframe=False):
     """
     Args:
         model: the Model object
-        height: cavas height
-        width: cavas width
+        height: cavas 的高度
+        width: cavas 的宽度
         picname: picture file name
     """
-    model_matrix = Mat4d([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-    # TODO: camera configration
-    view_matrix = look_at(Vec3d(-4, -4, 10), Vec3d(0, 0, 0))
-    projection_matrix = perspective_project(0.5, 0.5, 3, 1000)
+    model_matrix = Mat4d([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
 
-    world_vertices = []
+    # TODO: camera configration
+
+    view_matrix = look_at(Vec3d(-4, -4, 10), Vec3d(0, 0, 0))  # 视角转换矩阵,即lookat矩阵
+    projection_matrix = perspective_project(0.5, 0.5, 3, 1000)  # 透视矩阵
+    world_vertices = []  # 模型的世界坐标
 
     def mvp(v):
         world_vertex = model_matrix * v

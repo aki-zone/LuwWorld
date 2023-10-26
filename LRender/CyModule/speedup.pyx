@@ -2,6 +2,7 @@ import cython
 import numpy as np
 cimport numpy as np
 cimport cython
+from LRender.core import Vec3d, get_light_intensity
 
 # 使用Cpython针对性加速运算
 
@@ -35,13 +36,13 @@ cdef (int, int) get_min_max(double a, double b, double c):  #三个值中取最�
 
 @cython.boundscheck(False)
 cpdef double dot_product(double a0, double a1, double a2, double b0, double b1, double b2):
-    # 点乘,由c代码优化
+    # 三维点乘,由c代码优化
     cdef double result = a0 * b0 + a1 * b1 + a2 * b2
     return result
 
 @cython.boundscheck(False)
 cpdef (double, double, double) cross_product(double a0, double a1, double a2, double b0, double b1, double b2):
-    # 叉乘运算, 减法以满足右手系坐标法则
+    # 三维叉乘运算, 减法以满足右手系坐标法则
     cdef double x = a1 * b2 - a2 * b1
     cdef double y = a2 * b0 - a0 * b2
     cdef double z = a0 * b1 - a1 * b0
@@ -110,3 +111,6 @@ def generate_faces(double [:, :, :] triangles, int width, int height):
 
         faces.append(pixels)
     return faces
+
+
+
