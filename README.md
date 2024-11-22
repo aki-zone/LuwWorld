@@ -2,8 +2,6 @@
 
 基于CPython加速运算的3D软光栅渲染器
 
-<img alt="zbuffer corrected monkey" src="https://github.com/tvytlx/render-py/raw/master/res/monkey_wireframe.png" alt="monkey" width="420"> <img src="https://github.com/tvytlx/render-py/raw/master/res/monkey_zbuffer.png" alt="wireframe monkey" width="420">
-
 
 ### 已完成：
 - [x] 基本渲染管道
