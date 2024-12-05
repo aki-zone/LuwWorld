@@ -22,3 +22,6 @@
 $ pip install -r requirements.txt
 $ python setup.py build_ext --inplace && python try.py
 ```
+
+### 许可证
+在 MIT协议 许可下可用。查看[LICENSE](LICENSE)文件了解更多信息。
