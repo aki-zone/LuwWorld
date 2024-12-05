@@ -1,8 +1,11 @@
 # LuwWorld-py
 
 基于CPython加速运算的3D软光栅渲染器。
+<div style="display: flex; justify-content: space-around;">
+    <img alt="zbuffer corrected monkey" src="./res/monkey_zbuffer.png" alt="monkey" width="420"> <img src="./res/monkey_wireframe.png" alt="wireframe monkey" width="420">
+</div>
 
-<img alt="zbuffer corrected monkey" src="./res/monkey_zbuffer.png" alt="monkey" width="420"> <img src="./res/monkey_wireframe.png" alt="wireframe monkey" width="420">
+
 
 ### 实验进度：
 - [x] 基本渲染管道
